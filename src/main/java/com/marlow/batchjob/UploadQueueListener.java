@@ -1,0 +1,61 @@
+package com.marlow.batchjob;
+
+import com.marlow.config.RabbitNames;
+import com.marlow.upload.UploadJob;
+import com.marlow.upload.UploadJobRepository;
+import com.marlow.upload.UploadMessage;
+import com.marlow.upload.UploadStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+
+@Component
+public class UploadQueueListener {
+
+    private static final Logger log = LoggerFactory.getLogger(UploadQueueListener.class);
+
+    private final JobLauncher jobLauncher;
+    private final Job reviewCsvImportJob;
+    private final UploadJobRepository jobs;
+
+    public UploadQueueListener(JobLauncher jobLauncher, Job reviewCsvImportJob, UploadJobRepository jobs) {
+        this.jobLauncher = jobLauncher;
+        this.reviewCsvImportJob = reviewCsvImportJob;
+        this.jobs = jobs;
+    }
+
+    @RabbitListener(queues = RabbitNames.QUEUE)
+    public void onUpload(UploadMessage message) {
+        JobParameters parameters = new JobParametersBuilder()
+                .addString("jobId", message.jobId().toString())
+                .addString("tenantId", message.tenantId().toString())
+                .addString("filePath", message.filePath())
+                .toJobParameters();
+        try {
+            jobLauncher.run(reviewCsvImportJob, parameters);
+        } catch (JobInstanceAlreadyCompleteException alreadyDone) {
+            log.info("Upload {} was already imported", message.jobId());
+        } catch (Exception exception) {
+            log.error("Upload {} could not start", message.jobId(), exception);
+            jobs.findById(message.jobId()).ifPresent(job -> markFailed(job, exception.getMessage()));
+        }
+    }
+
+    private void markFailed(UploadJob job, String message) {
+        if (job.getStatus() == UploadStatus.COMPLETED) {
+            return;
+        }
+        job.setStatus(UploadStatus.FAILED);
+        job.setFinishedAt(Instant.now());
+        job.setErrorMessage(message == null ? "Import failed" : message.substring(0, Math.min(480, message.length())));
+        jobs.save(job);
+    }
+}

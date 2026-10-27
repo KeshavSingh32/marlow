@@ -1,0 +1,173 @@
+:root {
+  --paper: #f3ecdf;
+  --paper-deep: #e7dccb;
+  --card: #fffaf3;
+  --ink: #1e1a16;
+  --muted: #6f6458;
+  --line: #ddcfbb;
+  --green: #1d5c45;
+  --green-soft: #e5f2eb;
+  --clay: #a33b24;
+  --clay-soft: #f8e6df;
+  --gold: #8a5a12;
+  --gold-soft: #f6ead2;
+  --shadow: 0 18px 40px rgba(62, 42, 22, 0.08);
+  font-family: "Outfit", sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, .serif { font-family: "Fraunces", serif; font-weight: 560; letter-spacing: -0.03em; }
+
+.gate {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+}
+.gate-copy, .gate-shops { padding: 48px 40px; }
+.gate-copy {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(29, 92, 69, 0.16), transparent 32%),
+    linear-gradient(160deg, #f7f1e6, #e7d7c1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  color: var(--green);
+  margin: 0 0 16px;
+}
+.gate-copy h1 { font-size: clamp(48px, 6vw, 84px); line-height: 0.92; margin: 0 0 18px; }
+.lede { font-size: 18px; max-width: 38ch; line-height: 1.5; color: #3d342c; }
+.stamp {
+  align-self: flex-start;
+  border: 1.5px dashed var(--green);
+  color: var(--green);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+}
+.shop-grid { display: grid; gap: 16px; align-content: center; }
+.shop-card, .panel, .review, .stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.shop-card { text-align: left; padding: 22px; }
+.shop-card:hover { border-color: var(--green); }
+.shop-card h2 { margin: 6px 0; font-size: 32px; }
+.shop-card p { margin: 0; color: var(--muted); }
+.manual { display: flex; gap: 8px; margin-top: 8px; }
+.manual input, .filters select, textarea, .composer input, .composer select {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.primary, .ghost {
+  border-radius: 999px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+}
+.primary { background: var(--ink); color: #f6f0e6; }
+.ghost { background: transparent; border-color: var(--line); }
+.primary:disabled { opacity: 0.5; cursor: wait; }
+
+.shell { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
+.rail {
+  background: var(--paper-deep);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  border-right: 1px solid var(--line);
+}
+.word { font-family: "Fraunces", serif; font-size: 34px; margin: 0; }
+.rail nav { display: flex; flex-direction: column; gap: 8px; }
+.rail button, .topbar button {
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.rail button.active { background: var(--card); }
+.rail-foot { margin-top: auto; }
+.rail-foot small, .muted { color: var(--muted); }
+.mode {
+  display: inline-block;
+  margin-top: 8px;
+  background: var(--green-soft);
+  color: var(--green);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.main { padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+.topbar { display: flex; justify-content: space-between; gap: 16px; align-items: end; }
+.topbar h1 { margin: 0; font-size: 42px; }
+.window { display: flex; gap: 8px; }
+.stats, .split, .filters, .composer { display: grid; gap: 12px; }
+.stats { grid-template-columns: 1.4fr repeat(3, 1fr); }
+.stat { padding: 18px; }
+.stat strong, .score { font-family: "Fraunces", serif; font-size: 40px; display: block; }
+.score.warm { color: var(--green); }
+.score.mixed { color: var(--gold); }
+.score.cold { color: var(--clay); }
+.panel { padding: 18px 20px; }
+.bars { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; }
+.track { height: 10px; background: #f0e6d6; border-radius: 999px; overflow: hidden; }
+.track span { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+.trend { width: 100%; height: 140px; }
+.trend polyline { fill: none; stroke: var(--green); stroke-width: 3; }
+.dots circle { fill: var(--ink); }
+.split { grid-template-columns: 1.3fr 0.7fr; }
+.filters { grid-template-columns: 1fr 1fr auto auto; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.review { padding: 16px 18px; display: grid; gap: 8px; }
+.review header, .review footer, .pager { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { border-radius: 999px; padding: 3px 8px; font-size: 12px; background: var(--paper-deep); }
+.pill.POSITIVE { background: var(--green-soft); color: var(--green); }
+.pill.NEGATIVE { background: var(--clay-soft); color: var(--clay); }
+.pill.NEUTRAL { background: var(--gold-soft); color: var(--gold); }
+.pill.SENT { background: var(--ink); color: #f6f0e6; }
+textarea { min-height: 90px; resize: vertical; }
+.composer { grid-template-columns: 1.4fr 0.6fr 90px 0.7fr auto; }
+.drop {
+  border: 1.5px dashed var(--green);
+  border-radius: 18px;
+  padding: 28px;
+  background: rgba(255, 250, 243, 0.7);
+  display: grid;
+  gap: 8px;
+}
+.error {
+  background: var(--clay-soft);
+  color: var(--clay);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.empty { padding: 28px; text-align: center; }
+.members { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.members li { display: flex; justify-content: space-between; gap: 8px; }
+
+@media (max-width: 980px) {
+  .gate, .shell, .stats, .split, .filters, .composer { grid-template-columns: 1fr; }
+  .shell { display: block; }
+  .rail { border-right: 0; border-bottom: 1px solid var(--line); }
+  .rail nav { flex-direction: row; flex-wrap: wrap; }
+  .rail-foot { margin-top: 12px; }
+  .gate-copy, .gate-shops, .main { padding: 22px; }
+  .topbar { flex-direction: column; align-items: start; }
+}
