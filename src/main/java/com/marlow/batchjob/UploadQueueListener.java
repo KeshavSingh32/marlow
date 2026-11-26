@@ -1,6 +1,8 @@
 package com.marlow.batchjob;
 
 import com.marlow.config.RabbitNames;
+import com.marlow.upload.UploadFile;
+import com.marlow.upload.UploadFileRepository;
 import com.marlow.upload.UploadJob;
 import com.marlow.upload.UploadJobRepository;
 import com.marlow.upload.UploadMessage;
@@ -15,6 +17,9 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 
 @Component
@@ -25,11 +30,14 @@ public class UploadQueueListener {
     private final JobLauncher jobLauncher;
     private final Job reviewCsvImportJob;
     private final UploadJobRepository jobs;
+    private final UploadFileRepository files;
 
-    public UploadQueueListener(JobLauncher jobLauncher, Job reviewCsvImportJob, UploadJobRepository jobs) {
+    public UploadQueueListener(JobLauncher jobLauncher, Job reviewCsvImportJob, UploadJobRepository jobs,
+                               UploadFileRepository files) {
         this.jobLauncher = jobLauncher;
         this.reviewCsvImportJob = reviewCsvImportJob;
         this.jobs = jobs;
+        this.files = files;
     }
 
     @RabbitListener(queues = RabbitNames.QUEUE)
@@ -40,6 +48,7 @@ public class UploadQueueListener {
                 .addString("filePath", message.filePath())
                 .toJobParameters();
         try {
+            restoreFile(message);
             jobLauncher.run(reviewCsvImportJob, parameters);
         } catch (JobInstanceAlreadyCompleteException alreadyDone) {
             log.info("Upload {} was already imported", message.jobId());
@@ -47,6 +56,17 @@ public class UploadQueueListener {
             log.error("Upload {} could not start", message.jobId(), exception);
             jobs.findById(message.jobId()).ifPresent(job -> markFailed(job, exception.getMessage()));
         }
+    }
+
+    private void restoreFile(UploadMessage message) throws IOException {
+        Path path = Path.of(message.filePath());
+        if (Files.exists(path)) {
+            return;
+        }
+        UploadFile upload = files.findById(message.jobId())
+                .orElseThrow(() -> new IOException("The uploaded CSV was not found. Upload it again."));
+        Files.createDirectories(path.getParent());
+        Files.write(path, upload.getContent());
     }
 
     private void markFailed(UploadJob job, String message) {

@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
@@ -21,17 +20,18 @@ import java.util.UUID;
 public class UploadService {
 
     private final UploadJobRepository jobs;
+    private final UploadFileRepository files;
     private final RabbitTemplate rabbitTemplate;
     private final Path uploadRoot;
 
-    public UploadService(UploadJobRepository jobs, RabbitTemplate rabbitTemplate,
+    public UploadService(UploadJobRepository jobs, UploadFileRepository files, RabbitTemplate rabbitTemplate,
                          @Value("${marlow.storage.uploads}") String uploadRoot) {
         this.jobs = jobs;
+        this.files = files;
         this.rabbitTemplate = rabbitTemplate;
         this.uploadRoot = Path.of(uploadRoot);
     }
 
-    @Transactional
     public UploadResponse accept(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw ApiException.badRequest("Choose a CSV file first");
@@ -45,8 +45,7 @@ public class UploadService {
         Path directory = uploadRoot.resolve(tenantId.toString());
         Path stored = directory.resolve(jobId + ".csv");
         try {
-            Files.createDirectories(directory);
-            file.transferTo(stored);
+            files.save(new UploadFile(jobId, file.getBytes()));
         } catch (IOException exception) {
             throw ApiException.unavailable("Could not store that CSV");
         }
