@@ -34,13 +34,16 @@ public class SpringAiReviewIntelligence implements ReviewIntelligence {
     private final ObjectMapper objectMapper;
     private final ReviewIntelligence fallback;
     private final String model;
+    private final long minIntervalMillis;
+    private long nextCallAt;
 
     public SpringAiReviewIntelligence(ChatClient chatClient, ObjectMapper objectMapper,
-                                      ReviewIntelligence fallback, String model) {
+                                      ReviewIntelligence fallback, String model, long minIntervalMillis) {
         this.chatClient = chatClient;
         this.objectMapper = objectMapper;
         this.fallback = fallback;
         this.model = model;
+        this.minIntervalMillis = minIntervalMillis;
     }
 
     @Override
@@ -51,6 +54,7 @@ public class SpringAiReviewIntelligence implements ReviewIntelligence {
     @Override
     public ReviewInsight analyze(AnalysisInput input) {
         try {
+            awaitTurn();
             String raw = chatClient.prompt()
                     .system(SYSTEM)
                     .user(userPrompt(input))
@@ -64,6 +68,14 @@ public class SpringAiReviewIntelligence implements ReviewIntelligence {
             return new ReviewInsight(local.sentiment(), local.score(), local.category(), local.themes(),
                     local.draftReply(), "heuristic-fallback");
         }
+    }
+
+    private synchronized void awaitTurn() throws InterruptedException {
+        long wait = nextCallAt - System.currentTimeMillis();
+        if (wait > 0) {
+            Thread.sleep(wait);
+        }
+        nextCallAt = System.currentTimeMillis() + minIntervalMillis;
     }
 
     private ReviewInsight map(ModelReply reply, AnalysisInput input) {

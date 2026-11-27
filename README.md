@@ -6,7 +6,7 @@ This is a personal project. It is not a company product.
 
 ## What is in here
 
-- **Reading reviews.** Spring AI (`ChatClient` against the OpenAI chat model) turns a review into sentiment, a score from -1 to 1, a category, and a draft reply. With no API key, the same path runs an on-desk reader so the app still works offline.
+- **Reading reviews.** Spring AI (`ChatClient` through an OpenAI-compatible chat API) turns a review into sentiment, a score from -1 to 1, a category, and a draft reply. The default model is Gemini. With no API key, the same path runs an on-desk reader so the app still works offline.
 - **Bulk CSV.** `POST /api/uploads` stores the file and publishes a message on RabbitMQ (`marlow.uploads`). A listener starts a Spring Batch job that reads the CSV off the request thread.
 - **One database, many shops.** PostgreSQL tables for tenants, staff users, API keys, reviews, and upload jobs. Keys are stored as SHA-256 hashes. Every review and upload query is scoped by `tenant_id`.
 - **The numbers.** `/api/analytics/summary`, `/api/analytics/categories`, `/api/analytics/trends`, and `/api/analytics/sources` feed the desk.
@@ -47,14 +47,27 @@ These keys are local sample data, seeded on first boot. They are not secrets.
 
 Send the key as `X-Api-Key`.
 
-### Use Spring AI instead of the on-desk reader
+### AI analysis
+
+Reviews are analysed with Spring AI. The default provider is Gemini:
+
+```bash
+export GEMINI_API_KEY=...
+mvn spring-boot:run
+```
+
+To use OpenAI instead:
 
 ```bash
 export OPENAI_API_KEY=sk-...
-export MARLOW_AI_MODE=openai
-export MARLOW_AI_MODEL=gpt-4o-mini   # optional
+export MARLOW_AI_BASE_URL=https://api.openai.com
+export MARLOW_AI_COMPLETIONS_PATH=/v1/chat/completions
+export MARLOW_AI_MODEL=gpt-4o-mini
+export MARLOW_AI_MIN_INTERVAL_MS=0
 mvn spring-boot:run
 ```
+
+Set `MARLOW_AI_MODE=heuristic`, or leave out the key, to use the on-desk reader only.
 
 If the model call fails, that review falls back to the on-desk reader and is marked `heuristic-fallback`.
 

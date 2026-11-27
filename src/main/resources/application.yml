@@ -48,10 +48,15 @@ marlow:
   storage:
     uploads: ./data/uploads
   ai:
-    # heuristic runs on this machine. Set MARLOW_AI_MODE=openai and OPENAI_API_KEY to use Spring AI.
-    mode: ${MARLOW_AI_MODE:heuristic}
-    openai-api-key: ${OPENAI_API_KEY:}
-    model: ${MARLOW_AI_MODEL:gpt-4o-mini}
+    # AI analysis through Spring AI. The defaults call Gemini through its OpenAI-compatible API.
+    # Without a key, or if a call fails, the rule-based reader is used instead.
+    mode: ${MARLOW_AI_MODE:openai}
+    openai-api-key: ${GEMINI_API_KEY:${OPENAI_API_KEY:}}
+    model: ${MARLOW_AI_MODEL:gemini-3.1-flash-lite}
+    base-url: ${MARLOW_AI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
+    completions-path: ${MARLOW_AI_COMPLETIONS_PATH:/chat/completions}
+    # Pause between AI calls so CSV imports stay under the per-minute limit
+    min-interval-ms: ${MARLOW_AI_MIN_INTERVAL_MS:4500}
 
 logging:
   level:
